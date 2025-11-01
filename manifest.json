@@ -1,0 +1,13 @@
+{
+  "domain": "iotmeter_ext",
+  "name": "IoTMeter Extended",
+  "version": "1.0.0",
+  "documentation": "https://example.com",
+  "integration_type": "hub",
+  "loggers": ["iotmeter_ext"],
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": ["@JardaK"],
+  "config_flow": true,
+  "iot_class": "local_polling"
+}

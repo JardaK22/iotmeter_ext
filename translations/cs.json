@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfigurace IoTMeter",
+        "data": {
+          "ip_address": "IP Adresa",
+          "port": "Port"
+        },
+        "description": {
+          "ip_address": "Zadejte IP adresu zařízení IoTMeter.",
+          "port": "Zadejte číslo portu pro připojení k zařízení IoTMeter (výchozí je 8000)."
+        }
+      },
+      "reconfigure": {
+        "title": "Aktualizace možností IoTMeter",
+        "data": {
+          "ip_address": "IP Adresa",
+          "port": "Port"
+        },
+        "description": {
+          "ip_address": "Zadejte IP adresu zařízení IoTMeter.",
+          "port": "Zadejte číslo portu pro připojení k zařízení IoTMeter (výchozí je 8000)."
+        }
+      }
+    },
+    "error": {
+      "invalid_ip": "Zadaná IP adresa je neplatná."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "evse": "EV nabíječka",
+      "total_consumption_energy": "Celková spotřeba energie",
+      "total_generation_energy": "Celková výroba energie",
+      "total_power": "Celkový výkon",
+      "charging_current": "Nabíjecí proud",
+      "evse_status": {
+        "0": "EVSE není připojená",
+        "1": "EVSE připravená",
+        "2": "EV připojeno",
+        "3": "EV nabíjí"
+      }
+    }
+  }
+}

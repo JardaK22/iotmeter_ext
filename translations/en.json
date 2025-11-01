@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure IoTMeter",
+        "data": {
+          "ip_address": "IP Address",
+          "port": "Port"
+        },
+        "description": {
+          "ip_address": "Enter the IP address of the IoTMeter device.",
+          "port": "Enter the port number to connect to the IoTMeter device (default is 8000)."
+        }
+      },
+      "reconfigure": {
+        "title": "Update IoTMeter Options",
+        "data": {
+          "ip_address": "IP Address",
+          "port": "Port"
+        },
+        "description": {
+          "ip_address": "Enter the IP address of the IoTMeter device.",
+          "port": "Enter the port number to connect to the IoTMeter device (default is 8000)."
+        }
+      }
+    },
+    "error": {
+      "invalid_ip": "The IP address provided is invalid."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "evse": "EV Charger",
+      "total_consumption_energy": "Total Energy Consumption",
+      "total_generation_energy": "Total Energy Generation",
+      "total_power": "Total Power"
+    }
+  }
+}
