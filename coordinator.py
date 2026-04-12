@@ -9,7 +9,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .iotmeter_api import IoTMeterAPI, IotMeterAPIError
 from .const import DOMAIN
-from .sensor import PowerSensor, CurrentSensor, VoltageSensor, PowerFactorSensor
+from .sensor import (
+    PowerSensor, 
+    CurrentSensor, 
+    VoltageSensor, 
+    PowerFactorSensor,
+    EVSEStateSensor,
+    EVSECurrentSensor,
+    EVSEErrorSensor
+)
 
 SCAN_INTERVAL = 5
 
@@ -23,12 +31,14 @@ class IotMeterDataUpdateCoordinator(DataUpdateCoordinator):
         self.ip_address = ip_address
         self.port = port
         self.setting_read: bool = False
+        self.entities_added: bool = False  # Nový flag pro kontrolu, zda byly entity už přidány
         self.async_add_sensor_entities = None
         self.entities = []
         self.number_of_evse: int = 0
-        self.is_smartmodul = None
+        self.is_smartmodul = False  # Default: False pro podporu EVSE
         self.api = IoTMeterAPI(ip_address, port)
         self._entry = entry  # uložíme si celý config entry pro předání entry_id
+        self._last_valid_data = {}  # Ukládáme poslední platná data
 
         super().__init__(
             hass,
@@ -48,7 +58,8 @@ class IotMeterDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             data = await self.api.fetch_all_data(self.is_smartmodul)
 
-            number_of_evse = data.get("NUMBER_OF_EVSE", 0)
+            # Použijeme předchozí hodnotu, pokud NUMBER_OF_EVSE chybí (když updateEvse selže)
+            number_of_evse = data.get("NUMBER_OF_EVSE", self.number_of_evse)
 
             if "TYPE" in data:
                 if data["TYPE"] == "2":
@@ -56,21 +67,35 @@ class IotMeterDataUpdateCoordinator(DataUpdateCoordinator):
                 elif "inp,EVSE1" in data:
                     self.is_smartmodul = False
 
-            if not self.setting_read or (self.number_of_evse != number_of_evse and self.setting_read):
+            # Entity odstraníme pouze pokud se počet EVSE skutečně změnil (ne když jen chybí data)
+            if not self.setting_read or (self.number_of_evse != number_of_evse and self.setting_read and "NUMBER_OF_EVSE" in data):
                 self.number_of_evse = number_of_evse
                 await self.remove_entities()
+                self.entities_added = False  # Reset flag při odstranění entit
 
-            if self.async_add_sensor_entities:
+            # Entity přidáme jen jednou
+            if self.async_add_sensor_entities and not self.entities_added:
                 self.setting_read = True
                 await self.add_sensor_entities()
+                self.entities_added = True  # Nastavíme flag, aby se entity nepřidávaly znovu
 
+            # Uložíme platná data
+            self._last_valid_data = data
             return data
 
         except IotMeterAPIError as err:
-            raise UpdateFailed(f"Error fetching data: {err}") from err
+            _LOGGER.warning(f"Error fetching data: {err}, using last valid data")
+            # Vrátíme poslední platná data místo vyvolání výjimky
+            if self._last_valid_data:
+                return self._last_valid_data
+            else:
+                # Pokud nemáme žádná předchozí data, vyhodíme výjimku
+                raise UpdateFailed(f"Error fetching data: {err}") from err
 
     async def add_sensor_entities(self):
         """Add sensor entities to Home Assistant."""
+        _LOGGER.debug("Adding sensor entities...")
+        
         translations = await async_get_translations(
             self.hass,
             self.hass.config.language,
@@ -80,6 +105,7 @@ class IotMeterDataUpdateCoordinator(DataUpdateCoordinator):
         # Předáváme entry_id ze složky _entry pro tvorbu unikátního ID
         entry_id = self._entry.entry_id
 
+        # Základní senzory pro výkon, proud, napětí a účiník
         self.entities = [
             PowerSensor(self, entry_id, "P1", translations, "W", "P1"),
             PowerSensor(self, entry_id, "P2", translations, "W", "P2"),
@@ -95,10 +121,19 @@ class IotMeterDataUpdateCoordinator(DataUpdateCoordinator):
             VoltageSensor(self, entry_id, "U3", translations, "V", "U3"),
             PowerFactorSensor(self, entry_id, "F1", translations, " ", "F1"),
             PowerFactorSensor(self, entry_id, "F2", translations, " ", "F2"),
-            PowerFactorSensor(self, entry_id, "F3", translations, " ", "F3"),            
+            PowerFactorSensor(self, entry_id, "F3", translations, " ", "F3"),
         ]
 
+        # Přidání EVSE senzorů pro nabíječku 0
+        self.entities.extend([
+            EVSEStateSensor(self, entry_id, "EVSE State", translations, evse_index=0),
+            EVSECurrentSensor(self, entry_id, "EVSE Output Current", translations, "ACTUAL_OUTPUT_CURRENT", evse_index=0),
+            EVSECurrentSensor(self, entry_id, "EVSE Config Current", translations, "ACTUAL_CONFIG_CURRENT", evse_index=0),
+            EVSEErrorSensor(self, entry_id, "EVSE Comm Error", translations, evse_index=0),
+        ])
+
         # Přidáme entity do Home Assistanta
+        _LOGGER.debug(f"Adding {len(self.entities)} entities to Home Assistant")
         self.async_add_sensor_entities(self.entities)
 
     async def remove_entities(self):

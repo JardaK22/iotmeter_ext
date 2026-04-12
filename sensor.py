@@ -152,3 +152,107 @@ class PowerFactorSensor(TranslatableSensorEntity):
     @property
     def icon(self):
         return "mdi:flash"
+
+
+# ==================== NOVÉ EVSE SENZORY ====================
+
+class EVSEStateSensor(TranslatableSensorEntity):
+    """Senzor pro stav EVSE nabíječky."""
+
+    STATE_MAP = {
+        0: "Stav_0",
+        1: "Odpojeno",
+        2: "Zapojeno",
+        3: "Nabíjí",
+        4: "Stav_4",
+        5: "Stav_5",
+    }
+
+    def __init__(self, coordinator, entry_id, sensor_type, translations, evse_index=0):
+        super().__init__(coordinator, sensor_type, translations, None)
+        self._entry_id = entry_id
+        self._evse_index = evse_index
+        self._attr_name = f"{DOMAIN.upper()} EVSE {evse_index} State"
+
+    @property
+    def unique_id(self):
+        return f"{self._entry_id}_{DOMAIN}_evse_{self._evse_index}_state"
+
+    @property
+    def state(self):
+        """Vrací textový stav EVSE."""
+        ev_state_array = self.coordinator.data.get("EV_STATE", [])
+        if ev_state_array and len(ev_state_array) > self._evse_index:
+            state_value = ev_state_array[self._evse_index]
+            return self.STATE_MAP.get(state_value, f"Unknown_{state_value}")
+        return None
+
+    @property
+    def icon(self):
+        return "mdi:ev-station"
+
+
+class EVSECurrentSensor(TranslatableSensorEntity):
+    """Senzor pro proud EVSE nabíječky."""
+
+    def __init__(self, coordinator, entry_id, sensor_type, translations, key, evse_index=0):
+        super().__init__(coordinator, sensor_type, translations, "A")
+        self.key = key
+        self._entry_id = entry_id
+        self._evse_index = evse_index
+        self._attr_name = f"{DOMAIN.upper()} EVSE {evse_index} {key.replace('_', ' ').title()}"
+
+    @property
+    def unique_id(self):
+        return f"{self._entry_id}_{DOMAIN}_evse_{self._evse_index}_{self.key.lower()}"
+
+    @property
+    def state(self):
+        """Vrací proud EVSE v ampérech."""
+        current_array = self.coordinator.data.get(self.key, [])
+        if current_array and len(current_array) > self._evse_index:
+            return current_array[self._evse_index]
+        return None
+
+    @property
+    def icon(self):
+        return "mdi:current-ac"
+
+
+class EVSEErrorSensor(TranslatableSensorEntity):
+    """Senzor pro chybu komunikace EVSE."""
+
+    ERROR_MAP = {
+        0: "OK",
+        1: "Error_1",
+        2: "Error_2",
+        3: "Error_3",
+        4: "Error_4",
+        5: "Error_5",
+    }
+
+    def __init__(self, coordinator, entry_id, sensor_type, translations, evse_index=0):
+        super().__init__(coordinator, sensor_type, translations, None)
+        self._entry_id = entry_id
+        self._evse_index = evse_index
+        self._attr_name = f"{DOMAIN.upper()} EVSE {evse_index} Comm Error"
+
+    @property
+    def unique_id(self):
+        return f"{self._entry_id}_{DOMAIN}_evse_{self._evse_index}_comm_error"
+
+    @property
+    def state(self):
+        """Vrací stav chyby komunikace."""
+        error_array = self.coordinator.data.get("EV_COMM_ERR", [])
+        if error_array and len(error_array) > self._evse_index:
+            error_value = error_array[self._evse_index]
+            return self.ERROR_MAP.get(error_value, f"Error_{error_value}")
+        return None
+
+    @property
+    def icon(self):
+        error_array = self.coordinator.data.get("EV_COMM_ERR", [])
+        if error_array and len(error_array) > self._evse_index:
+            return "mdi:check-circle" if error_array[self._evse_index] == 0 else "mdi:alert-circle"
+        return "mdi:help-circle"
