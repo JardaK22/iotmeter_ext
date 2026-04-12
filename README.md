@@ -1,6 +1,6 @@
 # IoTMeter Extended
 
-Vlastní integrace pro [Home Assistant](https://www.home-assistant.io/) umožňující sledování dat z česského elektroměru **IoTMeter** přes lokální síť.
+Vlastní integrace pro [Home Assistant](https://www.home-assistant.io/) umožňující sledování dat z **IoTMeter** přes lokální síť.
 
 ## Funkce
 
