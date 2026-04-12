@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Validate manifest version matches tag
+        run: |
+          MANIFEST_VERSION=$(cat custom_components/iotmeter_ext/manifest.json | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+          TAG_VERSION=${{ steps.get_version.outputs.VERSION }}
+          if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
+            echo "ERROR: manifest.json version ($MANIFEST_VERSION) != tag ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "Versions match: $MANIFEST_VERSION"
+
+      - name: Create ZIP archive
+        run: |
+          cd custom_components
+          zip -r ../iotmeter_ext-v${{ steps.get_version.outputs.VERSION }}.zip iotmeter_ext/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "IoTMeter Extended v${{ steps.get_version.outputs.VERSION }}"
+          body: |
+            ## IoTMeter Extended v${{ steps.get_version.outputs.VERSION }}
+
+            ### Instalace přes HACS
+            Aktualizujte nebo nainstalujte integraci přes HACS.
+
+            ### Manuální instalace
+            Stáhněte `iotmeter_ext-v${{ steps.get_version.outputs.VERSION }}.zip` a rozbalte do `custom_components/`.
+          files: iotmeter_ext-v${{ steps.get_version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
