@@ -33,9 +33,10 @@ Vlastní integrace pro [Home Assistant](https://www.home-assistant.io/) umožňu
 
 ## Verze
 
-| Verze | Popis |
-|-------|-------|
+| Verze | Popis                                               |
+|-------|-----------------------------------------------------|
 | 0.5.0 | Počáteční verze s podporou 3-fázového měření a EVSE |
+| 0.5.1 | Oprava chyb v sensor.py                             |
 
 ## Kompatibilita
 
