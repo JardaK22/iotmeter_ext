@@ -42,7 +42,8 @@ class TranslatableSensorEntity(CoordinatorEntity, SensorEntity):
 
     def get_localized_name(self):
         """Return the localized name for the sensor."""
-        key = f"component.iotmeter.entity.sensor.{self._sensor_type}"
+        # translations file provides keys under "entity.sensor.<key>"
+        key = f"entity.sensor.{self._sensor_type}"
         localized_name = self._translations.get(key)
         return localized_name or self._sensor_type
 
@@ -87,12 +88,14 @@ class CurrentSensor(TranslatableSensorEntity):
     def state(self):
         """Return the state of the sensor."""
         raw_value = self.coordinator.data.get(self.key)
-        
-        if raw_value is not None:
-            # Korekce záporných hodnot u signed 16-bitové hodnoty
-            value = raw_value - 65535 if raw_value > 32767 else raw_value
+
+        if raw_value is None:
+            return None
+
+        # Korekce záporných hodnot u signed 16-bitové hodnoty
+        value = raw_value - 65536 if raw_value > 32767 else raw_value
         value = value / 100
-        return round(float(value), 2) if value is not None else None
+        return round(float(value), 2)
 
     @property
     def icon(self):
@@ -118,12 +121,14 @@ class PowerSensor(TranslatableSensorEntity):
     def state(self):
         """Return the state of the sensor."""
         raw_value = self.coordinator.data.get(self.key)
-        
-        if raw_value is not None:
-            # Korekce záporných hodnot u signed 16-bitové hodnoty
-            value = raw_value - 65535 if raw_value > 32767 else raw_value
 
-        return round(float(value), 0) if value is not None else None
+        if raw_value is None:
+            return None
+
+        # Korekce záporných hodnot u signed 16-bitové hodnoty
+        value = raw_value - 65536 if raw_value > 32767 else raw_value
+
+        return round(float(value), 0)
 
     @property
     def icon(self) -> str:
