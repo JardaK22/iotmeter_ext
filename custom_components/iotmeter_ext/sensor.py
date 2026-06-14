@@ -5,8 +5,11 @@ import logging
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import (
+    AddEntitiesCallback,
+)
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity import DeviceInfo
 
 from .const import DOMAIN
 
@@ -21,7 +24,8 @@ async def async_setup_entry(
     """Set up the IoTMeter sensors from a config entry."""
     coordinator = hass.data[DOMAIN]["coordinator"]
 
-    # Store entity creation function in coordinator so it can be called after data refresh
+    # Store entity creation function in coordinator so it can be called
+    # after data refresh
     coordinator.async_add_sensor_entities = async_add_sensor_entities
     hass.data[DOMAIN]["platform"] = async_add_sensor_entities
 
@@ -32,13 +36,38 @@ async def async_setup_entry(
 class TranslatableSensorEntity(CoordinatorEntity, SensorEntity):
     """A sensor entity that can be localized."""
 
-    def __init__(self, coordinator, sensor_type, translations, unit_of_measurement) -> None:
+    def __init__(
+        self,
+        coordinator,
+        sensor_type,
+        translations,
+        unit_of_measurement,
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._sensor_type = sensor_type.replace(" ", "_").lower()
         self._translations = translations
         self._attr_name = self.get_localized_name()
         self._attr_native_unit_of_measurement = unit_of_measurement
+        # Attach all entities to the same device using the config entry ID
+        try:
+            entry_id = getattr(coordinator, "_entry").entry_id
+        except Exception:
+            entry_id = None
+
+        ip = getattr(coordinator, "ip_address", None)
+        port = getattr(coordinator, "port", None)
+
+        if entry_id:
+            config_url = f"http://{ip}:{port}" if ip and port else None
+            self._attr_device_info = DeviceInfo(
+                identifiers={(DOMAIN, entry_id)},
+                name=(
+                    f"IoTMeter {ip or entry_id}"
+                ),
+                manufacturer="IoTMeter",
+                configuration_url=config_url,
+            )
 
     def get_localized_name(self):
         """Return the localized name for the sensor."""
@@ -51,8 +80,21 @@ class TranslatableSensorEntity(CoordinatorEntity, SensorEntity):
 class VoltageSensor(TranslatableSensorEntity):
     """Senzor pro napětí na jedné fázi (U1, U2, U3)."""
 
-    def __init__(self, coordinator, entry_id, sensor_type, translations, unit_of_measurement, key):
-        super().__init__(coordinator, sensor_type, translations, unit_of_measurement)
+    def __init__(
+        self,
+        coordinator,
+        entry_id,
+        sensor_type,
+        translations,
+        unit_of_measurement,
+        key,
+    ):
+        super().__init__(
+            coordinator,
+            sensor_type,
+            translations,
+            unit_of_measurement,
+        )
         self.key = key
         self._entry_id = entry_id
         self._attr_name = f"{DOMAIN.upper()} {self.key.upper()}"
@@ -70,12 +112,26 @@ class VoltageSensor(TranslatableSensorEntity):
     @property
     def icon(self):
         return "mdi:flash"
-    
+
+
 class CurrentSensor(TranslatableSensorEntity):
     """Senzor pro proud na jedné fázi (U1, U2, U3)."""
 
-    def __init__(self, coordinator, entry_id, sensor_type, translations, unit_of_measurement, key):
-        super().__init__(coordinator, sensor_type, translations, unit_of_measurement)
+    def __init__(
+        self,
+        coordinator,
+        entry_id,
+        sensor_type,
+        translations,
+        unit_of_measurement,
+        key,
+    ):
+        super().__init__(
+            coordinator,
+            sensor_type,
+            translations,
+            unit_of_measurement,
+        )
         self.key = key
         self._entry_id = entry_id
         self._attr_name = f"{DOMAIN.upper()} {self.key.upper()}"
@@ -105,9 +161,22 @@ class CurrentSensor(TranslatableSensorEntity):
 class PowerSensor(TranslatableSensorEntity):
     """Representation of the total power sensor."""
 
-    def __init__(self, coordinator, entry_id, sensor_type, translations, unit_of_measurement, key):
+    def __init__(
+        self,
+        coordinator,
+        entry_id,
+        sensor_type,
+        translations,
+        unit_of_measurement,
+        key,
+    ):
         """Initialize the total power sensor."""
-        super().__init__(coordinator, sensor_type, translations, unit_of_measurement)
+        super().__init__(
+            coordinator,
+            sensor_type,
+            translations,
+            unit_of_measurement,
+        )
         self.key = key
         self._entry_id = entry_id
         self._attr_name = f"{DOMAIN.upper()} {self.key.upper()}"
@@ -135,11 +204,25 @@ class PowerSensor(TranslatableSensorEntity):
         """Return the icon of the sensor."""
         return "mdi:home-lightning-bolt"
 
+
 class PowerFactorSensor(TranslatableSensorEntity):
     """Senzor pro účiník na jedné fázi (U1, U2, U3)."""
 
-    def __init__(self, coordinator, entry_id, sensor_type, translations, unit_of_measurement, key):
-        super().__init__(coordinator, sensor_type, translations, unit_of_measurement)
+    def __init__(
+        self,
+        coordinator,
+        entry_id,
+        sensor_type,
+        translations,
+        unit_of_measurement,
+        key,
+    ):
+        super().__init__(
+            coordinator,
+            sensor_type,
+            translations,
+            unit_of_measurement,
+        )
         self.key = key
         self._entry_id = entry_id
         self._attr_name = f"{DOMAIN.upper()} {self.key.upper()}"
@@ -173,7 +256,14 @@ class EVSEStateSensor(TranslatableSensorEntity):
         5: "Stav_5",
     }
 
-    def __init__(self, coordinator, entry_id, sensor_type, translations, evse_index=0):
+    def __init__(
+        self,
+        coordinator,
+        entry_id,
+        sensor_type,
+        translations,
+        evse_index=0,
+    ):
         super().__init__(coordinator, sensor_type, translations, None)
         self._entry_id = entry_id
         self._evse_index = evse_index
@@ -200,16 +290,35 @@ class EVSEStateSensor(TranslatableSensorEntity):
 class EVSECurrentSensor(TranslatableSensorEntity):
     """Senzor pro proud EVSE nabíječky."""
 
-    def __init__(self, coordinator, entry_id, sensor_type, translations, key, evse_index=0):
-        super().__init__(coordinator, sensor_type, translations, "A")
+    def __init__(
+        self,
+        coordinator,
+        entry_id,
+        sensor_type,
+        translations,
+        key,
+        evse_index=0,
+    ):
+        super().__init__(
+            coordinator,
+            sensor_type,
+            translations,
+            "A",
+        )
         self.key = key
         self._entry_id = entry_id
         self._evse_index = evse_index
-        self._attr_name = f"{DOMAIN.upper()} EVSE {evse_index} {key.replace('_', ' ').title()}"
+        display = key.replace("_", " ").title()
+        self._attr_name = (
+            f"{DOMAIN.upper()} EVSE {evse_index} {display}"
+        )
 
     @property
     def unique_id(self):
-        return f"{self._entry_id}_{DOMAIN}_evse_{self._evse_index}_{self.key.lower()}"
+        return (
+            f"{self._entry_id}_{DOMAIN}_evse_"
+            f"{self._evse_index}_{self.key.lower()}"
+        )
 
     @property
     def state(self):
@@ -236,7 +345,14 @@ class EVSEErrorSensor(TranslatableSensorEntity):
         5: "Error_5",
     }
 
-    def __init__(self, coordinator, entry_id, sensor_type, translations, evse_index=0):
+    def __init__(
+        self,
+        coordinator,
+        entry_id,
+        sensor_type,
+        translations,
+        evse_index=0,
+    ):
         super().__init__(coordinator, sensor_type, translations, None)
         self._entry_id = entry_id
         self._evse_index = evse_index
@@ -259,5 +375,7 @@ class EVSEErrorSensor(TranslatableSensorEntity):
     def icon(self):
         error_array = self.coordinator.data.get("EV_COMM_ERR", [])
         if error_array and len(error_array) > self._evse_index:
-            return "mdi:check-circle" if error_array[self._evse_index] == 0 else "mdi:alert-circle"
+            if error_array[self._evse_index] == 0:
+                return "mdi:check-circle"
+            return "mdi:alert-circle"
         return "mdi:help-circle"

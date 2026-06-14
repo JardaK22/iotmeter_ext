@@ -2,8 +2,9 @@ from homeassistant import config_entries
 from .const import DOMAIN
 import voluptuous as vol
 
+
 class IoTMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    
+
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
@@ -12,7 +13,10 @@ class IoTMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             port = user_input.get("port")
 
             if ip_address and port:
-                return self.async_create_entry(title="IoTMeter", data=user_input)
+                return self.async_create_entry(
+                    title="IoTMeter",
+                    data=user_input,
+                )
             errors["base"] = "invalid_input"
 
         data_schema = vol.Schema(
@@ -56,5 +60,7 @@ class IoTMeterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
         return self.async_show_form(
-            step_id="reconfigure", data_schema=data_schema, errors=errors
+            step_id="reconfigure",
+            data_schema=data_schema,
+            errors=errors,
         )

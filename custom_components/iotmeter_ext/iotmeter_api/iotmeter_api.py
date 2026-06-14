@@ -11,23 +11,33 @@ class IotMeterAPIError(Exception):
     pass
 
 
-async def fetch_data(session, url) -> Optional[Dict[str, Any]]:
+async def fetch_data(
+    session,
+    url,
+) -> Optional[Dict[str, Any]]:
     """Fetch data from a URL."""
     try:
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=4)) as response:
+        async with session.get(
+            url,
+            timeout=aiohttp.ClientTimeout(total=4),
+        ) as response:
             if response.status == 200:
                 return await response.json()
-            else:
-                _LOGGER.error(f"Error fetching {url}: HTTP {response.status}")
-                return None
+
+            _LOGGER.error(
+                "Error fetching %s: HTTP %s",
+                url,
+                response.status,
+            )
+            return None
     except asyncio.TimeoutError:
-        _LOGGER.error(f"Timeout fetching {url}")
+        _LOGGER.error("Timeout fetching %s", url)
         return None
     except aiohttp.ClientError as err:
-        _LOGGER.error(f"Client error fetching {url}: {err}")
+        _LOGGER.error("Client error fetching %s: %s", url, err)
         return None
     except Exception as err:
-        _LOGGER.error(f"Unexpected error fetching {url}: {err}")
+        _LOGGER.error("Unexpected error fetching %s: %s", url, err)
         return None
 
 
@@ -36,17 +46,21 @@ class IoTMeterAPI:
         self.ip_address = ip_address
         self.port = port
 
-    async def fetch_all_data(self, is_smartmodul=False) -> Dict[str, Any]:
+    async def fetch_all_data(
+        self,
+        is_smartmodul=False,
+    ) -> Dict[str, Any]:
         """Fetch data from all necessary URLs."""
+        base = f"http://{self.ip_address}:{self.port}"
         urls = [
-            f"http://{self.ip_address}:{self.port}/updateSetting",
-            f"http://{self.ip_address}:{self.port}/updateData",
+            f"{base}/updateSetting",
+            f"{base}/updateData",
         ]
 
         if is_smartmodul:
-            urls.append(f"http://{self.ip_address}:{self.port}/updateRamSetting")
+            urls.append(f"{base}/updateRamSetting")
         else:
-            urls.append(f"http://{self.ip_address}:{self.port}/updateEvse")
+            urls.append(f"{base}/updateEvse")
 
         async with aiohttp.ClientSession() as session:
             tasks = [fetch_data(session, url) for url in urls]
@@ -54,23 +68,35 @@ class IoTMeterAPI:
 
             # Zkontrolujeme, zda jsou výsledky validní
             data = {}
-            
+
             if results[0] and isinstance(results[0], dict):
                 data.update(results[0])
             else:
                 _LOGGER.error("Failed to fetch updateSetting data")
                 raise IotMeterAPIError("Failed to fetch updateSetting data")
-            
+
             if results[1] and isinstance(results[1], dict):
                 data.update(results[1])
             else:
                 _LOGGER.error("Failed to fetch updateData")
                 raise IotMeterAPIError("Failed to fetch updateData")
-            
+
             # Třetí endpoint je volitelný (EVSE nebo RamSetting)
-            if len(results) > 2 and results[2] and isinstance(results[2], dict):
+            if (
+                len(results) > 2
+                and results[2]
+                and isinstance(results[2], dict)
+            ):
                 data.update(results[2])
             elif len(results) > 2:
-                _LOGGER.warning(f"Failed to fetch {'updateRamSetting' if is_smartmodul else 'updateEvse'}, continuing with partial data")
+                endpoint = (
+                    "updateRamSetting"
+                    if is_smartmodul
+                    else "updateEvse"
+                )
+                _LOGGER.warning(
+                    "Failed to fetch %s, continuing with partial data",
+                    endpoint,
+                )
 
             return data
