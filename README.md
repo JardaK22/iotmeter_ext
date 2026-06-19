@@ -44,6 +44,7 @@ Vlastní integrace pro [Home Assistant](https://www.home-assistant.io/) umožňu
 | 0.6.2 | Oprava ikony integrace                               |
 | 0.6.3 | Přidány brand obrázky (icon/logo) pro HA 2026.3+     |
 | 0.6.4 | Brand obrázky upraveny: horní text IoTMeter           |
+| 0.6.5 | Zkrácen interval aktualizace na 4 sekundy            |
 ## Kompatibilita
 
 - Home Assistant 2024.1.0 a novější

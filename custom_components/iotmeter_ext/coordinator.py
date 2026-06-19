@@ -24,7 +24,7 @@ from .sensor import (
     EVSEErrorSensor,
 )
 
-SCAN_INTERVAL = 5
+SCAN_INTERVAL = 4
 
 _LOGGER = logging.getLogger(__name__)
 
