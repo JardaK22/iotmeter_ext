@@ -1,12 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="IoT Extended icon">
   <defs>
-    <linearGradient id="g" x1="16" y1="16" x2="112" y2="112" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#1F8A70"/>
-      <stop offset="1" stop-color="#0F4C5C"/>
+    <linearGradient id="bg" x1="16" y1="16" x2="112" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#123B4A"/>
+      <stop offset="1" stop-color="#1F8A70"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="32" y1="18" x2="96" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F9F7F3"/>
+      <stop offset="1" stop-color="#D8FFF3"/>
     </linearGradient>
   </defs>
-  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#g)"/>
-  <path d="M42 84L58 52H49L66 28L56 56H72L42 84Z" fill="#F9F7F3"/>
-  <path d="M82 34C92 44 98 56 98 70C98 84 92 96 82 104" stroke="#F9F7F3" stroke-width="8" stroke-linecap="round"/>
-  <path d="M74 44C80 50 84 59 84 70C84 81 80 90 74 96" stroke="#F9F7F3" stroke-width="8" stroke-linecap="round" opacity="0.7"/>
+
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#bg)"/>
+
+  <text x="64" y="55" text-anchor="middle" fill="url(#accent)" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700" letter-spacing="1.5">IoT</text>
+  <text x="64" y="85" text-anchor="middle" fill="#F9F7F3" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" letter-spacing="1">Extended</text>
+
+  <path d="M26 95H102" stroke="#F9F7F3" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+  <circle cx="39" cy="95" r="4" fill="#F9F7F3"/>
+  <circle cx="89" cy="95" r="4" fill="#F9F7F3"/>
 </svg>
