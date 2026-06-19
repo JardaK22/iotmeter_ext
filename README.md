@@ -42,6 +42,7 @@ Vlastní integrace pro [Home Assistant](https://www.home-assistant.io/) umožňu
 | 0.6.0 | Přidány ovládací prvky (switch/number/select/button) |
 | 0.6.1 | Drobná oprava a sjednocení verze                     |
 | 0.6.2 | Oprava ikony integrace                               |
+| 0.6.3 | Přidány brand obrázky (icon/logo) pro HA 2026.3+     |
 ## Kompatibilita
 
 - Home Assistant 2024.1.0 a novější
