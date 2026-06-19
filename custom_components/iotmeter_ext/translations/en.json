@@ -34,6 +34,21 @@
       "total_consumption_energy": "Total Energy Consumption",
       "total_generation_energy": "Total Energy Generation",
       "total_power": "Total Power"
+    },
+    "switch": {
+      "enable_charging": "Enable Charging",
+      "enable_balancing": "Enable Balancing"
+    },
+    "number": {
+      "pv_grid_assist": "PV Grid Assist",
+      "actual_config_current": "Actual Config Current",
+      "actual_output_current": "Actual Output Current"
+    },
+    "select": {
+      "charge_mode": "Charge Mode"
+    },
+    "button": {
+      "photovoltaic": "Photovoltaic"
     }
   }
 }

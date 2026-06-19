@@ -39,6 +39,7 @@ Vlastní integrace pro [Home Assistant](https://www.home-assistant.io/) umožňu
 | 0.5.1 | Oprava chyb v sensor.py                             |
 | 0.5.5 | Oprava syntaxe                             |
 | 0.5.6 | Nejnovější vydání                                   |
+| 0.6.0 | Přidány ovládací prvky (switch/number/select/button) |
 ## Kompatibilita
 
 - Home Assistant 2024.1.0 a novější

@@ -1,5 +1,6 @@
 import aiohttp
 import asyncio
+import json
 import logging
 from typing import Dict, Any, Optional
 
@@ -100,3 +101,41 @@ class IoTMeterAPI:
                 )
 
             return data
+
+    async def update_setting(self, variable: str, value: Any) -> Dict[str, Any]:
+        """Write a setting value to IoTMeter updateSetting endpoint."""
+        base = f"http://{self.ip_address}:{self.port}"
+        url = f"{base}/updateSetting"
+        payload = json.dumps({"variable": variable, "value": value})
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    headers=headers,
+                    data=payload,
+                    timeout=aiohttp.ClientTimeout(total=4),
+                ) as response:
+                    if response.status != 200:
+                        raise IotMeterAPIError(
+                            f"Failed to update setting {variable}: HTTP {response.status}"
+                        )
+
+                    result = await response.json()
+                    if not isinstance(result, dict):
+                        raise IotMeterAPIError(
+                            f"Unexpected response while updating {variable}"
+                        )
+                    return result
+        except asyncio.TimeoutError as err:
+            raise IotMeterAPIError(
+                f"Timeout updating setting {variable}"
+            ) from err
+        except aiohttp.ClientError as err:
+            raise IotMeterAPIError(
+                f"Client error updating setting {variable}: {err}"
+            ) from err

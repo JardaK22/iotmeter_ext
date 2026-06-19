@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 import logging
+from typing import Any
 
 from homeassistant.helpers.translation import (
     async_get_translations,
@@ -61,6 +62,11 @@ class IotMeterDataUpdateCoordinator(DataUpdateCoordinator):
         self.ip_address = ip_address
         self.port = port
         self.api = IoTMeterAPI(ip_address, port)
+
+    async def async_write_setting(self, variable: str, value: Any) -> None:
+        """Write a setting to IoTMeter and refresh coordinator data."""
+        await self.api.update_setting(variable, value)
+        await self.async_request_refresh()
 
     async def _async_update_data(self):
         """Fetch data from API."""

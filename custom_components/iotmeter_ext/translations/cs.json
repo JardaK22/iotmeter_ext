@@ -41,6 +41,21 @@
         "2": "EV připojeno",
         "3": "EV nabíjí"
       }
+    },
+    "switch": {
+      "enable_charging": "Povolit nabíjení",
+      "enable_balancing": "Povolit balancing"
+    },
+    "number": {
+      "pv_grid_assist": "PV asistence ze sítě",
+      "actual_config_current": "Aktuální konfigurovaný proud",
+      "actual_output_current": "Aktuální výstupní proud"
+    },
+    "select": {
+      "charge_mode": "Režim nabíjení"
+    },
+    "button": {
+      "photovoltaic": "Fotovoltaika"
     }
   }
 }
