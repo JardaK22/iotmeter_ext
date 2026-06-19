@@ -23,20 +23,35 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            IoTMeterChargeModeSelect(
+            IoTMeterMappedSelect(
                 coordinator,
                 entry_id,
-                "chargeMode",
-                "Charge Mode",
-            )
+                variable="chargeMode",
+                name="Charge Mode",
+                options={
+                    "0": "EcoMode",
+                    "1": "FastMode",
+                },
+                icon="mdi:car-electric",
+            ),
+            IoTMeterMappedSelect(
+                coordinator,
+                entry_id,
+                variable="btn,PHOTOVOLTAIC",
+                name="Photovoltaic",
+                options={
+                    "0": "Off",
+                    "1": "1phase",
+                    "2": "3phase",
+                },
+                icon="mdi:solar-power-variant",
+            ),
         ]
     )
 
 
-class IoTMeterChargeModeSelect(CoordinatorEntity, SelectEntity):
-    """Select entity for chargeMode setting."""
-
-    _attr_options = ["0", "1", "2", "3"]
+class IoTMeterMappedSelect(CoordinatorEntity, SelectEntity):
+    """Select entity that maps displayed options to IoTMeter values."""
 
     def __init__(
         self,
@@ -44,13 +59,20 @@ class IoTMeterChargeModeSelect(CoordinatorEntity, SelectEntity):
         entry_id: str,
         variable: str,
         name: str,
+        options: dict[str, str],
+        icon: str,
     ) -> None:
         super().__init__(coordinator)
         self._entry_id = entry_id
         self._variable = variable
+        self._value_to_option = options
+        self._option_to_value = {display: value for value, display in options.items()}
         self._attr_name = f"IOTMETER {name}"
-        self._attr_icon = "mdi:car-electric"
-        self._attr_unique_id = f"{entry_id}_{DOMAIN}_{variable.lower()}"
+        self._attr_icon = icon
+        self._attr_options = list(options.values())
+        self._attr_unique_id = (
+            f"{entry_id}_{DOMAIN}_{variable.lower().replace(',', '_').replace(' ', '_')}"
+        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry_id)},
             name=f"IoTMeter {coordinator.ip_address or entry_id}",
@@ -64,10 +86,10 @@ class IoTMeterChargeModeSelect(CoordinatorEntity, SelectEntity):
         if value is None:
             return None
 
-        text = str(value)
-        if text in self.options:
-            return text
-        return self.options[0]
+        return self._value_to_option.get(str(value))
 
     async def async_select_option(self, option: str) -> None:
-        await self.coordinator.async_write_setting(self._variable, int(option))
+        value = self._option_to_value.get(option)
+        if value is None:
+            return
+        await self.coordinator.async_write_setting(self._variable, int(value))

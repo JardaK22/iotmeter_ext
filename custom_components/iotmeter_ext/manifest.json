@@ -2,6 +2,7 @@
   "domain": "iotmeter_ext",
   "name": "IoTMeter Extended",
   "version": "0.6.0",
+  "icon": "icon.svg",
   "documentation": "https://github.com/JardaK22/iotmeter_ext",
   "issue_tracker": "https://github.com/JardaK22/iotmeter_ext/issues",
   "integration_type": "hub",
