@@ -16,6 +16,11 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
+def _decode_signed_16(raw_value: int | float) -> float:
+    """Convert a raw 16-bit value to signed form."""
+    return raw_value - 65536 if raw_value > 32767 else raw_value
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -148,10 +153,8 @@ class CurrentSensor(TranslatableSensorEntity):
         if raw_value is None:
             return None
 
-        # Korekce záporných hodnot u signed 16-bitové hodnoty
-        value = raw_value - 65536 if raw_value > 32767 else raw_value
-        value = value / 100
-        return round(float(value), 2)
+        value = _decode_signed_16(raw_value) / 100
+        return round(float(-value), 2)
 
     @property
     def icon(self):
@@ -194,10 +197,8 @@ class PowerSensor(TranslatableSensorEntity):
         if raw_value is None:
             return None
 
-        # Korekce záporných hodnot u signed 16-bitové hodnoty
-        value = raw_value - 65536 if raw_value > 32767 else raw_value
-
-        return round(float(value), 0)
+        value = _decode_signed_16(raw_value)
+        return round(float(-value), 0)
 
     @property
     def icon(self) -> str:

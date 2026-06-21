@@ -35,7 +35,7 @@ Vlastní integrace pro [Home Assistant](https://www.home-assistant.io/) umožňu
 
 | Verze | Popis                                               |
 |-------|-----------------------------------------------------|
-| 0.7.0 | Nejnovější verze: aktualizace a stabilizace integrace |
+| 0.8.0 | Invertované hodnoty proudu a výkonu |
 ## Kompatibilita
 
 - Home Assistant 2024.1.0 a novější
