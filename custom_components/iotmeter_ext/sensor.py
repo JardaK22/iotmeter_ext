@@ -184,6 +184,7 @@ class PowerSensor(TranslatableSensorEntity):
         self._entry_id = entry_id
         self._attr_name = f"{DOMAIN.upper()} {self.key.upper()}"
         self.total_power: float = 0
+        self._attr_suggested_display_precision = 0
 
     @property
     def unique_id(self):
